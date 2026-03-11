@@ -175,9 +175,15 @@
         .forEach(item => {
             const isLiked = localStorage.getItem('like_' + item.id);
             const isSelected = selectedItems.has(item.id);
+            
+            // 處理備註：預防備註是 undefined 或 null
+            const displayNote = item.note ? item.note : "（這筆資料沒有備註喔）";
+
             container.innerHTML += `
-                <div class="item-card ${isSelected?'selected':''}" onclick="handleCardClick('${item.id}', '${item.note}')"
-                     onmousedown="startPress('${item.id}')" onmouseup="endPress()" ontouchstart="startPress('${item.id}')" ontouchend="endPress()">
+                <div class="item-card ${isSelected?'selected':''}" 
+                     onclick="handleCardClick('${item.id}', \`${displayNote}\`)"
+                     onmousedown="startPress('${item.id}')" onmouseup="endPress()" 
+                     ontouchstart="startPress('${item.id}')" ontouchend="endPress()">
                     <div class="item-title">${item.name}</div>
                     <img class="item-img" src="${item.imgUrl}">
                     <div class="item-info">
@@ -289,6 +295,7 @@
 </script>
 </body>
 </html>
+
 
 
 
