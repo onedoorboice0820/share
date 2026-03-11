@@ -148,19 +148,21 @@
         document.getElementById('category-page').classList.remove('active');
     }
 
-    // 4. 資料存取與渲染
+    // 4. 資料存取與渲染 (保險版：保證資料不失蹤)
     function fetchData() {
-        // 重新加回：按讚數(likes)由高到低，以及建立時間(createdAt)由新到舊排序
         db.collection("items")
           .where("category", "==", currentCategory)
-          .orderBy("likes", "desc")
-          .orderBy("createdAt", "desc")
           .onSnapshot(snapshot => {
+              // 抓取資料後，改用 JavaScript 在網頁端做簡單排序（從新到舊）
               allData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              
+              // 雖然不叫資料庫排序，我們可以在這裡手動讓新資料排前面
+              allData.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+              
               renderItems();
           }, error => {
-              console.error("排序抓取失敗：", error);
-              // 如果還是報錯，通常是索引還沒跑完，請點擊 F12 控制台裡的連結
+              console.error("抓取失敗：", error);
+              alert("讀取資料失敗，請檢查網路或資料庫規則。");
           });
     }
 
@@ -287,6 +289,7 @@
 </script>
 </body>
 </html>
+
 
 
 
