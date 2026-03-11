@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>8豆錢包寄放處</title>
+    <title>8豆錢包破洞</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
     <style>
         :root {
@@ -17,39 +18,59 @@
 
         body { font-family: -apple-system, sans-serif; background: var(--bg-color); margin: 0; color: #333; }
         
-        /* 頁面切換：預設隱藏，有 .active 才會出現 */
-        .page { display: none; padding-bottom: 80px; min-height: 100vh; }
+        /* 頁面切換控制 */
+        .page { display: none; padding-bottom: 80px; }
         .active { display: block; }
 
         /* 首頁六宮格 */
         .home-grid {
-            display: grid; grid-template-columns: 1fr 1fr; grid-gap: 20px; padding: 25px; margin-top: 20px;
+            display: grid; grid-template-columns: 1fr 1fr; grid-gap: 20px; padding: 25px;
+            margin-top: 20px;
         }
         .menu-card {
-            background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
             aspect-ratio: 1/1; border-radius: 24px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            box-shadow: var(--card-shadow); border: 1px solid white; transition: 0.2s;
+            box-shadow: var(--card-shadow); border: 1px solid white;
+            transition: 0.2s;
         }
         .menu-card:active { transform: scale(0.92); }
         .menu-icon { font-size: 45px; margin-bottom: 8px; }
         .menu-text { font-weight: 600; color: var(--deep-blue); }
 
-        /* 類別頁 */
+        /* 類別分頁 UI */
         .header { position: sticky; top: 0; background: white; padding: 15px; z-index: 10; display: flex; gap: 10px; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
         .search-input { flex: 1; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--main-blue); background: #F0F7FF; outline: none; }
-        .items-grid { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 12px; padding: 12px; }
-        .item-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: var(--card-shadow); display: flex; flex-direction: column; }
-        .item-card.selected { border: 3px solid var(--deep-blue); }
-        .item-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #eee; }
         
-        /* 導覽列 */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: white; display: flex; overflow-x: auto; align-items: center; border-top: 1px solid #eee; z-index: 100; }
+        /* 小紅書雙欄 */
+        .items-grid { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 12px; padding: 12px; }
+        .item-card { 
+            background: white; border-radius: 15px; overflow: hidden; box-shadow: var(--card-shadow); 
+            display: flex; flex-direction: column; position: relative;
+        }
+        .item-card.selected { border: 3px solid var(--deep-blue); box-shadow: 0 0 15px rgba(33, 158, 188, 0.4); }
+        .item-title { padding: 10px 10px 5px; font-weight: bold; font-size: 0.95rem; }
+        .item-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #eee; }
+        .item-info { padding: 8px 10px; font-size: 0.8rem; color: #666; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* 底部導覽列 */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
+            background: white; display: flex; overflow-x: auto; align-items: center;
+            border-top: 1px solid #eee; z-index: 100;
+        }
         .nav-item { flex: 0 0 20%; min-width: 65px; text-align: center; font-size: 0.7rem; color: var(--deep-blue); }
 
-        .fab { position: fixed; right: 20px; bottom: 90px; width: 56px; height: 56px; border-radius: 28px; background: var(--deep-blue); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border: none; z-index: 99; }
+        /* 懸浮按鈕 */
+        .fab {
+            position: fixed; right: 20px; bottom: 90px; width: 56px; height: 56px;
+            border-radius: 28px; background: var(--deep-blue); color: white;
+            display: flex; align-items: center; justify-content: center; font-size: 24px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2); border: none;
+        }
 
-        /* 彈窗：平常是 display: none */
+        /* 彈窗樣式 */
         #modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: white; z-index: 1000; display: none; padding: 20px; box-sizing: border-box; overflow-y: auto;
@@ -79,20 +100,16 @@
         <h2 style="color:var(--deep-blue)">分享好物</h2>
         <button onclick="closeModal()" style="border:none; background:none; font-size:24px;">✕</button>
     </div>
-    <input type="text" id="f-img-url" placeholder="圖片網址 (Imgur 等)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;" oninput="previewImg()">
-    <div id="img-preview-box" style="width:100%; height:150px; background:#eee; border-radius:10px; margin-bottom:15px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-        <span id="preview-placeholder">圖片預覽</span>
-        <img id="img-preview" src="" style="display:none; width:100%; height:100%; object-fit:cover;">
-    </div>
+    <input type="file" id="f-img" accept="image/*" style="margin:20px 0;">
     <select id="f-cat" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;"></select>
     <input type="text" id="f-name" placeholder="物品名稱" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;">
     <input type="text" id="f-usage" placeholder="用途" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;">
     <textarea id="f-note" placeholder="詳細備註" rows="4" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;"></textarea>
-    <button onclick="uploadItem()" id="btn-publish" style="width:100%; background:var(--deep-blue); color:white; padding:15px; border:none; border-radius:15px; font-weight:bold;">發布</button>
+    <button onclick="uploadItem()" style="width:100%; background:var(--deep-blue); color:white; padding:15px; border:none; border-radius:15px; font-weight:bold;">發布</button>
 </div>
 
 <script>
-    // Firebase 配置
+    // 1. 初始化 Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyBrWae6zXn7mx7YGXONm9BquB44fWYbd6c",
         authDomain: "door-nomoney.firebaseapp.com",
@@ -103,6 +120,7 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const storage = firebase.storage();
 
     const categories = [
         { name: '彩妝', icon: '💄' }, { name: '保養', icon: '🧴' }, { name: '保健', icon: '💊' },
@@ -112,13 +130,14 @@
     let currentCategory = '';
     let allData = [];
     let selectedItems = new Set();
+    let longPressTimer;
 
+    // 2. 初始化選單
     function initMenus() {
         const homeMenu = document.getElementById('home-menu');
         const bottomMenu = document.getElementById('bottom-menu');
         const fCat = document.getElementById('f-cat');
-        
-        homeMenu.innerHTML = ''; bottomMenu.innerHTML = ''; fCat.innerHTML = '';
+
         categories.forEach(cat => {
             homeMenu.innerHTML += `<div class="menu-card" onclick="showCategory('${cat.name}')"><span class="menu-icon">${cat.icon}</span><span class="menu-text">${cat.name}</span></div>`;
             bottomMenu.innerHTML += `<div class="nav-item" onclick="showCategory('${cat.name}')">${cat.icon}<div>${cat.name}</div></div>`;
@@ -126,6 +145,7 @@
         });
     }
 
+    // 3. 頁面切換
     function showCategory(name) {
         currentCategory = name;
         document.getElementById('home-page').classList.remove('active');
@@ -138,6 +158,7 @@
         document.getElementById('category-page').classList.remove('active');
     }
 
+    // 4. 資料存取與渲染
     function fetchData() {
         db.collection("items").where("category", "==", currentCategory)
           .orderBy("likes", "desc").orderBy("createdAt", "desc")
@@ -149,16 +170,22 @@
 
     function renderItems() {
         const container = document.getElementById('items-container');
+        const search = document.getElementById('search').value.toLowerCase();
         container.innerHTML = '';
-        allData.forEach(item => {
+        
+        allData.filter(item => item.name.toLowerCase().includes(search) || item.usage.toLowerCase().includes(search))
+        .forEach(item => {
             const isLiked = localStorage.getItem('like_' + item.id);
+            const isSelected = selectedItems.has(item.id);
             container.innerHTML += `
-                <div class="item-card" onclick="alert('${item.note}')">
-                    <div style="padding:10px; font-weight:bold;">${item.name}</div>
-                    <img class="item-img" src="${item.imgUrl}">
-                    <div style="padding:8px; font-size:0.8rem;">
-                        ${item.usage} 
-                        <span onclick="event.stopPropagation(); toggleLike('${item.id}', ${item.likes})" style="float:right;">
+                <div class="item-card ${isSelected?'selected':''}" 
+                     onclick="handleCardClick('${item.id}', '${item.note}')"
+                     onmousedown="startPress('${item.id}')" onmouseup="endPress()" ontouchstart="startPress('${item.id}')" ontouchend="endPress()">
+                    <div class="item-title">${item.name}</div>
+                    <img class="item-img" src="${item.imgUrl || 'https://via.placeholder.com/150'}">
+                    <div class="item-info">
+                        <span>${item.usage}</span>
+                        <span onclick="event.stopPropagation(); toggleLike('${item.id}', ${item.likes})">
                             ${isLiked?'❤️':'🤍'} ${item.likes}
                         </span>
                     </div>
@@ -166,38 +193,83 @@
         });
     }
 
-    function previewImg() {
-        const url = document.getElementById('f-img-url').value;
-        const img = document.getElementById('img-preview');
-        const placeholder = document.getElementById('preview-placeholder');
-        if(url) { img.src = url; img.style.display = 'block'; placeholder.style.display = 'none'; }
+    // 5. 按讚與選取邏輯
+    function toggleLike(id, count) {
+        if(localStorage.getItem('like_' + id)) return alert("你已經點過讚囉！");
+        db.collection("items").doc(id).update({ likes: count + 1 });
+        localStorage.setItem('like_' + id, true);
     }
 
+    function handleCardClick(id, note) {
+        if (selectedItems.size > 0) {
+            toggleSelect(id);
+        } else {
+            alert("備註資訊：\n" + note);
+        }
+    }
+
+    function startPress(id) {
+        longPressTimer = setTimeout(() => {
+            toggleSelect(id);
+            if(navigator.vibrate) navigator.vibrate(50);
+        }, 600);
+    }
+    function endPress() { clearTimeout(longPressTimer); }
+
+    function toggleSelect(id) {
+        if(selectedItems.has(id)) selectedItems.delete(id);
+        else selectedItems.add(id);
+        renderItems();
+    }
+
+    // 6. 圖片壓縮與上傳
     async function uploadItem() {
-        const imgUrl = document.getElementById('f-img-url').value;
+        const file = document.getElementById('f-img').files[0];
         const name = document.getElementById('f-name').value;
         const usage = document.getElementById('f-usage').value;
         const note = document.getElementById('f-note').value;
         const category = document.getElementById('f-cat').value;
-        if(!imgUrl || !name) return alert("請填寫必填欄位");
-        
-        await db.collection("items").add({
-            name, usage, note, category, imgUrl, likes: 0,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        closeModal();
+
+        if(!file || !name) return alert("請填寫必要資訊並選擇照片");
+
+        // 簡易壓縮邏輯
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+        img.onload = async () => {
+            canvas.width = 800; canvas.height = (img.height / img.width) * 800;
+            ctx.drawImage(img, 0, 0, 800, canvas.height);
+            canvas.toBlob(async (blob) => {
+                const ref = storage.ref().child(`images/${Date.now()}.jpg`);
+                await ref.put(blob);
+                const url = await ref.getDownloadURL();
+                await db.collection("items").add({
+                    name, usage, note, category, imgUrl: url, 
+                    likes: 0, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                closeModal();
+            }, 'image/jpeg', 0.7);
+        };
     }
 
-    function toggleLike(id, count) {
-        if(localStorage.getItem('like_' + id)) return;
-        db.collection("items").doc(id).update({ likes: count + 1 });
-        localStorage.setItem('like_' + id, true);
+    function copyToClipboard() {
+        const list = allData.filter(i => selectedItems.has(i.id))
+                           .map(i => `${i.name} (用途：${i.usage})`).join('\n');
+        if(!list) return alert("請先長按選取物品！");
+        navigator.clipboard.writeText("我的購物清單：\n" + list);
+        alert("已複製到剪貼簿！可直接貼到 LINE 囉！");
+        selectedItems.clear();
+        renderItems();
     }
 
     function showAddForm() { document.getElementById('modal').style.display = 'block'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
-    window.onload = initMenus;
+    initMenus();
 </script>
 </body>
+
 </html>
+
+
