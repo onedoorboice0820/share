@@ -150,13 +150,12 @@
 
     // 4. 資料存取與渲染
     function fetchData() {
-        db.collection("items").where("category", "==", currentCategory)
-          .orderBy("likes", "desc").orderBy("createdAt", "desc")
-          .onSnapshot(snapshot => {
-              allData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-              renderItems();
-          });
-    }
+    db.collection("items").where("category", "==", currentCategory)
+      .onSnapshot(snapshot => {
+          allData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          renderItems();
+      });
+}
 
     function renderItems() {
         const container = document.getElementById('items-container');
@@ -281,4 +280,5 @@
 </script>
 </body>
 </html>
+
 
