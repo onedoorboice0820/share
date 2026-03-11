@@ -176,5 +176,7 @@
     function showAddForm() { document.getElementById('modal').style.display = 'block'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
+// 確保 DOM 樹完全載入後再執行
+window.onload = function() {
     initMenus();
-</script>
+};
