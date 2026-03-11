@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>8豆錢包破洞</title>
+    <title>8豆錢包寄放處</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
     <style>
         :root {
@@ -18,59 +17,41 @@
 
         body { font-family: -apple-system, sans-serif; background: var(--bg-color); margin: 0; color: #333; }
         
-        /* 頁面切換控制 */
-        .page { display: none; padding-bottom: 80px; }
+        /* 頁面切換：預設隱藏，有 .active 才會出現 */
+        .page { display: none; padding-bottom: 80px; min-height: 100vh; }
         .active { display: block; }
 
         /* 首頁六宮格 */
         .home-grid {
-            display: grid; grid-template-columns: 1fr 1fr; grid-gap: 20px; padding: 25px;
-            margin-top: 20px;
+            display: grid; grid-template-columns: 1fr 1fr; grid-gap: 20px; padding: 25px; margin-top: 20px;
         }
         .menu-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px);
             aspect-ratio: 1/1; border-radius: 24px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            box-shadow: var(--card-shadow); border: 1px solid white;
-            transition: 0.2s;
+            box-shadow: var(--card-shadow); border: 1px solid white; transition: 0.2s;
         }
         .menu-card:active { transform: scale(0.92); }
         .menu-icon { font-size: 45px; margin-bottom: 8px; }
         .menu-text { font-weight: 600; color: var(--deep-blue); }
 
-        /* 類別分頁 UI */
+        /* 類別頁 */
         .header { position: sticky; top: 0; background: white; padding: 15px; z-index: 10; display: flex; gap: 10px; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
         .search-input { flex: 1; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--main-blue); background: #F0F7FF; outline: none; }
-        
-        /* 小紅書雙欄 */
         .items-grid { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 12px; padding: 12px; }
-        .item-card { 
-            background: white; border-radius: 15px; overflow: hidden; box-shadow: var(--card-shadow); 
-            display: flex; flex-direction: column; position: relative;
-        }
+        .item-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: var(--card-shadow); display: flex; flex-direction: column; position: relative; }
         .item-card.selected { border: 3px solid var(--deep-blue); box-shadow: 0 0 15px rgba(33, 158, 188, 0.4); }
         .item-title { padding: 10px 10px 5px; font-weight: bold; font-size: 0.95rem; }
         .item-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #eee; }
         .item-info { padding: 8px 10px; font-size: 0.8rem; color: #666; display: flex; justify-content: space-between; align-items: center; }
         
-        /* 底部導覽列 */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
-            background: white; display: flex; overflow-x: auto; align-items: center;
-            border-top: 1px solid #eee; z-index: 100;
-        }
+        /* 導覽列 */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: white; display: flex; overflow-x: auto; align-items: center; border-top: 1px solid #eee; z-index: 100; }
         .nav-item { flex: 0 0 20%; min-width: 65px; text-align: center; font-size: 0.7rem; color: var(--deep-blue); }
 
-        /* 懸浮按鈕 */
-        .fab {
-            position: fixed; right: 20px; bottom: 90px; width: 56px; height: 56px;
-            border-radius: 28px; background: var(--deep-blue); color: white;
-            display: flex; align-items: center; justify-content: center; font-size: 24px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2); border: none;
-        }
+        .fab { position: fixed; right: 20px; bottom: 90px; width: 56px; height: 56px; border-radius: 28px; background: var(--deep-blue); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border: none; z-index: 99; }
 
-        /* 彈窗樣式 */
+        /* 彈窗 */
         #modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: white; z-index: 1000; display: none; padding: 20px; box-sizing: border-box; overflow-y: auto;
@@ -100,23 +81,21 @@
         <h2 style="color:var(--deep-blue)">分享好物</h2>
         <button onclick="closeModal()" style="border:none; background:none; font-size:24px;">✕</button>
     </div>
-<div id="modal">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h2 style="color:var(--deep-blue)">分享好物</h2>
-        <button onclick="closeModal()" style="border:none; background:none; font-size:24px;">✕</button>
-    </div>
-    <input type="text" id="f-img-url" placeholder="請貼上圖片網址 (如 Imgur 連結)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;" oninput="previewImg()">
+    <p style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">圖片網址與備註可不填，預設會帶入錢包破洞圖</p>
+    
+    <input type="text" id="f-img-url" placeholder="圖片網址 (選填)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;" oninput="previewImg()">
     
     <div id="img-preview-box" style="width:100%; height:150px; background:#eee; border-radius:10px; margin-bottom:15px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-        <span id="preview-placeholder" style="color:#aaa;">圖片預覽</span>
+        <span id="preview-placeholder">圖片預覽</span>
         <img id="img-preview" src="" style="display:none; width:100%; height:100%; object-fit:cover;">
     </div>
     
     <select id="f-cat" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;"></select>
-    <input type="text" id="f-name" placeholder="物品名稱" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;">
-    <input type="text" id="f-usage" placeholder="用途" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;">
-    <textarea id="f-note" placeholder="詳細備註" rows="4" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;"></textarea>
-    <button onclick="uploadItem()" style="width:100%; background:var(--deep-blue); color:white; padding:15px; border:none; border-radius:15px; font-weight:bold;">發布</button>
+    <input type="text" id="f-name" placeholder="物品名稱 (必填)" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;">
+    <input type="text" id="f-usage" placeholder="用途 (選填)" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;">
+    <textarea id="f-note" placeholder="詳細備註 (選填)" rows="4" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;"></textarea>
+    
+    <button onclick="uploadItem()" id="btn-publish" style="width:100%; background:var(--deep-blue); color:white; padding:15px; border:none; border-radius:15px; font-weight:bold;">發布</button>
 </div>
 
 <script>
@@ -131,7 +110,6 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const storage = firebase.storage();
 
     const categories = [
         { name: '彩妝', icon: '💄' }, { name: '保養', icon: '🧴' }, { name: '保健', icon: '💊' },
@@ -148,7 +126,8 @@
         const homeMenu = document.getElementById('home-menu');
         const bottomMenu = document.getElementById('bottom-menu');
         const fCat = document.getElementById('f-cat');
-
+        
+        homeMenu.innerHTML = ''; bottomMenu.innerHTML = ''; fCat.innerHTML = '';
         categories.forEach(cat => {
             homeMenu.innerHTML += `<div class="menu-card" onclick="showCategory('${cat.name}')"><span class="menu-icon">${cat.icon}</span><span class="menu-text">${cat.name}</span></div>`;
             bottomMenu.innerHTML += `<div class="nav-item" onclick="showCategory('${cat.name}')">${cat.icon}<div>${cat.name}</div></div>`;
@@ -156,7 +135,7 @@
         });
     }
 
-    // 3. 頁面切換
+    // 3. 頁面控制
     function showCategory(name) {
         currentCategory = name;
         document.getElementById('home-page').classList.remove('active');
@@ -189,11 +168,10 @@
             const isLiked = localStorage.getItem('like_' + item.id);
             const isSelected = selectedItems.has(item.id);
             container.innerHTML += `
-                <div class="item-card ${isSelected?'selected':''}" 
-                     onclick="handleCardClick('${item.id}', '${item.note}')"
+                <div class="item-card ${isSelected?'selected':''}" onclick="handleCardClick('${item.id}', '${item.note}')"
                      onmousedown="startPress('${item.id}')" onmouseup="endPress()" ontouchstart="startPress('${item.id}')" ontouchend="endPress()">
                     <div class="item-title">${item.name}</div>
-                    <img class="item-img" src="${item.imgUrl || 'https://via.placeholder.com/150'}">
+                    <img class="item-img" src="${item.imgUrl}">
                     <div class="item-info">
                         <span>${item.usage}</span>
                         <span onclick="event.stopPropagation(); toggleLike('${item.id}', ${item.likes})">
@@ -204,19 +182,73 @@
         });
     }
 
-    // 5. 按讚與選取邏輯
+    // 5. 發布邏輯 (選填與預覽)
+    async function uploadItem() {
+        let imgUrl = document.getElementById('f-img-url').value.trim();
+        const name = document.getElementById('f-name').value.trim();
+        const usage = document.getElementById('f-usage').value.trim();
+        let note = document.getElementById('f-note').value.trim();
+        const category = document.getElementById('f-cat').value;
+        const btn = document.getElementById('btn-publish');
+
+        if(!name) return alert("請至少填寫物品名稱喔！");
+
+        // 如果圖片網址為空，帶入預覽圖片 (已修正為 Drive 直接連結格式)
+        if(!imgUrl) {
+            imgUrl = "https://lh3.googleusercontent.com/d/1xgJjmZuk5qOKg6_vrBms4fVEDGAD6gCl";
+        }
+        
+        if(!note) note = "（無備註）";
+
+        btn.disabled = true; btn.innerText = "發布中...";
+
+        try {
+            await db.collection("items").add({
+                name, 
+                usage: usage || "（未註明）", 
+                note, 
+                category, 
+                imgUrl, 
+                likes: 0,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert("發布成功！");
+            closeModal();
+            // 重設表單
+            document.getElementById('f-img-url').value = '';
+            document.getElementById('f-name').value = '';
+            document.getElementById('f-usage').value = '';
+            document.getElementById('f-note').value = '';
+            previewImg();
+        } catch (e) {
+            console.error(e);
+            alert("發布失敗，請確認資料庫權限。");
+        } finally {
+            btn.disabled = false; btn.innerText = "發布";
+        }
+    }
+
+    function previewImg() {
+        const url = document.getElementById('f-img-url').value;
+        const img = document.getElementById('img-preview');
+        const placeholder = document.getElementById('preview-placeholder');
+        if(url) {
+            img.src = url; img.style.display = 'block'; placeholder.style.display = 'none';
+        } else {
+            img.style.display = 'none'; placeholder.style.display = 'block';
+        }
+    }
+
+    // 6. 其他功能 (按讚、長按選取、複製)
     function toggleLike(id, count) {
-        if(localStorage.getItem('like_' + id)) return alert("你已經點過讚囉！");
+        if(localStorage.getItem('like_' + id)) return alert("點過讚了！");
         db.collection("items").doc(id).update({ likes: count + 1 });
         localStorage.setItem('like_' + id, true);
     }
 
     function handleCardClick(id, note) {
-        if (selectedItems.size > 0) {
-            toggleSelect(id);
-        } else {
-            alert("備註資訊：\n" + note);
-        }
+        if (selectedItems.size > 0) toggleSelect(id);
+        else alert("💡 物品備註：\n" + note);
     }
 
     function startPress(id) {
@@ -233,79 +265,19 @@
         renderItems();
     }
 
-// 修改後的第 6 點：直接儲存網址 (方案 A)
-async function uploadItem() {
-    // 取得輸入框的值
-    const imgUrl = document.getElementById('f-img-url').value; // 改讀取網址框
-    const name = document.getElementById('f-name').value;
-    const usage = document.getElementById('f-usage').value;
-    const note = document.getElementById('f-note').value;
-    const category = document.getElementById('f-cat').value;
-    const btn = document.querySelector("button[onclick='uploadItem()']");
-
-    if(!imgUrl || !name) return alert("請填寫物品名稱並貼上圖片網址");
-
-    btn.disabled = true;
-    btn.innerText = "發布中...";
-
-    try {
-        // 直接存入 Firestore，跳過 Storage
-        await db.collection("items").add({
-            name, 
-            usage, 
-            note, 
-            category, 
-            imgUrl, // 這裡存的是你貼上的網址
-            likes: 0, 
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert("發布成功！");
-        closeModal();
-        // 清空欄位
-        document.getElementById('f-img-url').value = '';
-        document.getElementById('f-name').value = '';
-        document.getElementById('f-usage').value = '';
-        document.getElementById('f-note').value = '';
-    } catch (e) {
-        console.error(e);
-        alert("發布失敗，請確認 Firestore 規則已開啟！");
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "發布";
-    }
-}
-
-// 新增預覽功能 (讓社友知道網址有沒有貼對)
-function previewImg() {
-    const url = document.getElementById('f-img-url').value;
-    const img = document.getElementById('img-preview');
-    const placeholder = document.getElementById('preview-placeholder');
-    if(url) {
-        img.src = url; img.style.display = 'block'; placeholder.style.display = 'none';
-    } else {
-        img.style.display = 'none'; placeholder.style.display = 'block';
-    }
-}
-
     function copyToClipboard() {
         const list = allData.filter(i => selectedItems.has(i.id))
                            .map(i => `${i.name} (用途：${i.usage})`).join('\n');
         if(!list) return alert("請先長按選取物品！");
-        navigator.clipboard.writeText("我的購物清單：\n" + list);
-        alert("已複製到剪貼簿！可直接貼到 LINE 囉！");
-        selectedItems.clear();
-        renderItems();
+        navigator.clipboard.writeText("8豆錢包購物清單：\n" + list);
+        alert("清單已複製！可以貼到 LINE 群組囉！");
+        selectedItems.clear(); renderItems();
     }
 
     function showAddForm() { document.getElementById('modal').style.display = 'block'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
-    initMenus();
+    window.onload = initMenus;
 </script>
 </body>
-
 </html>
-
-
-
-
