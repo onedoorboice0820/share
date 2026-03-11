@@ -222,36 +222,59 @@
         renderItems();
     }
 
-    // 6. 圖片壓縮與上傳
-    async function uploadItem() {
-        const file = document.getElementById('f-img').files[0];
-        const name = document.getElementById('f-name').value;
-        const usage = document.getElementById('f-usage').value;
-        const note = document.getElementById('f-note').value;
-        const category = document.getElementById('f-cat').value;
+// 修改後的第 6 點：直接儲存網址 (方案 A)
+async function uploadItem() {
+    // 取得輸入框的值
+    const imgUrl = document.getElementById('f-img-url').value; // 改讀取網址框
+    const name = document.getElementById('f-name').value;
+    const usage = document.getElementById('f-usage').value;
+    const note = document.getElementById('f-note').value;
+    const category = document.getElementById('f-cat').value;
+    const btn = document.querySelector("button[onclick='uploadItem()']");
 
-        if(!file || !name) return alert("請填寫必要資訊並選擇照片");
+    if(!imgUrl || !name) return alert("請填寫物品名稱並貼上圖片網址");
 
-        // 簡易壓縮邏輯
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const img = new Image();
-        img.src = URL.createObjectURL(file);
-        img.onload = async () => {
-            canvas.width = 800; canvas.height = (img.height / img.width) * 800;
-            ctx.drawImage(img, 0, 0, 800, canvas.height);
-            canvas.toBlob(async (blob) => {
-                const ref = storage.ref().child(`images/${Date.now()}.jpg`);
-                await ref.put(blob);
-                const url = await ref.getDownloadURL();
-                await db.collection("items").add({
-                    name, usage, note, category, imgUrl: url, 
-                    likes: 0, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                closeModal();
-            }, 'image/jpeg', 0.7);
-        };
+    btn.disabled = true;
+    btn.innerText = "發布中...";
+
+    try {
+        // 直接存入 Firestore，跳過 Storage
+        await db.collection("items").add({
+            name, 
+            usage, 
+            note, 
+            category, 
+            imgUrl, // 這裡存的是你貼上的網址
+            likes: 0, 
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert("發布成功！");
+        closeModal();
+        // 清空欄位
+        document.getElementById('f-img-url').value = '';
+        document.getElementById('f-name').value = '';
+        document.getElementById('f-usage').value = '';
+        document.getElementById('f-note').value = '';
+    } catch (e) {
+        console.error(e);
+        alert("發布失敗，請確認 Firestore 規則已開啟！");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "發布";
     }
+}
+
+// 新增預覽功能 (讓社友知道網址有沒有貼對)
+function previewImg() {
+    const url = document.getElementById('f-img-url').value;
+    const img = document.getElementById('img-preview');
+    const placeholder = document.getElementById('preview-placeholder');
+    if(url) {
+        img.src = url; img.style.display = 'block'; placeholder.style.display = 'none';
+    } else {
+        img.style.display = 'none'; placeholder.style.display = 'block';
+    }
+}
 
     function copyToClipboard() {
         const list = allData.filter(i => selectedItems.has(i.id))
@@ -271,5 +294,6 @@
 </body>
 
 </html>
+
 
 
