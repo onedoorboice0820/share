@@ -166,6 +166,7 @@
           });
     }
 
+    // 修改 1：渲染時只傳 ID，不傳文字
     function renderItems() {
         const container = document.getElementById('items-container');
         const search = document.getElementById('search').value.toLowerCase();
@@ -175,13 +176,10 @@
         .forEach(item => {
             const isLiked = localStorage.getItem('like_' + item.id);
             const isSelected = selectedItems.has(item.id);
-            
-            // 處理備註：預防備註是 undefined 或 null
-            const displayNote = item.note ? item.note : "（這筆資料沒有備註喔）";
 
             container.innerHTML += `
                 <div class="item-card ${isSelected?'selected':''}" 
-                     onclick="handleCardClick('${item.id}', \`${displayNote}\`)"
+                     onclick="handleCardClick('${item.id}')"
                      onmousedown="startPress('${item.id}')" onmouseup="endPress()" 
                      ontouchstart="startPress('${item.id}')" ontouchend="endPress()">
                     <div class="item-title">${item.name}</div>
@@ -194,6 +192,18 @@
                     </div>
                 </div>`;
         });
+    }
+
+    // 修改 2：點擊時根據 ID 去 allData 找備註
+    function handleCardClick(id) {
+        if (selectedItems.size > 0) {
+            toggleSelect(id);
+        } else {
+            // 從現有的資料裡找出這一筆
+            const item = allData.find(i => i.id === id);
+            const noteText = item && item.note ? item.note : "（這筆資料沒有備註喔）";
+            alert("💡 物品備註：\n" + noteText);
+        }
     }
 
     // 5. 發布邏輯 (選填與預覽)
@@ -295,6 +305,7 @@
 </script>
 </body>
 </html>
+
 
 
 
