@@ -81,7 +81,7 @@
         <h2 style="color:var(--deep-blue)">分享好物</h2>
         <button onclick="closeModal()" style="border:none; background:none; font-size:24px;">✕</button>
     </div>
-    <p style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">圖片網址與備註可不填，預設會帶入錢包破洞圖</p>
+    <p style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">圖片網址(如需上傳圖檔，推薦圖鴨上床https://duk.tw/register)與備註可不填，預設會帶入錢包破洞圖</p>
     
     <input type="text" id="f-img-url" placeholder="圖片網址 (選填)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;" oninput="previewImg()">
     
@@ -91,9 +91,9 @@
     </div>
     
     <select id="f-cat" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;"></select>
-    <input type="text" id="f-name" placeholder="物品名稱 (必填)" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;">
-    <input type="text" id="f-usage" placeholder="用途 (選填)" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;">
-    <textarea id="f-note" placeholder="詳細備註 (選填)" rows="4" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;"></textarea>
+    <input type="text" id="f-name" placeholder="物品名稱/場館名稱 (必填)" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;">
+    <input type="text" id="f-usage" placeholder="用途/演唱會座位 (選填)" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;">
+    <textarea id="f-note" placeholder="詳細備註/演唱會節目名 (選填)" rows="4" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;"></textarea>
     
     <button onclick="uploadItem()" id="btn-publish" style="width:100%; background:var(--deep-blue); color:white; padding:15px; border:none; border-radius:15px; font-weight:bold;">發布</button>
 </div>
@@ -308,6 +308,7 @@
 </script>
 </body>
 </html>
+
 
 
 
